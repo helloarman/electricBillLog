@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>বিদ্যুৎ বিল ট্র্যাকার</title>
-    
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#10B981">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -439,13 +443,33 @@
                 
                 const avgUsage = daysDiff > 0 ? usage / daysDiff : usage;
 
-                dailyUsages.push({
-                    date: currentLog.date,
-                    usage: usage > 0 ? usage : 0,
-                    avgUsage: avgUsage > 0 ? avgUsage : 0,
-                    isSpike: false,
-                    reading: currentLog.reading
-                });
+                if (daysDiff > 1) {
+                    for (let d = 1; d <= daysDiff; d++) {
+                        const filledDate = new Date(prevDate);
+                        filledDate.setDate(prevDate.getDate() + d);
+                        const filledDateStr = formatDateYMD(filledDate);
+                        const isEstimated = d !== daysDiff;
+                        const estReading = prevLog.reading + (avgUsage * d);
+                        
+                        dailyUsages.push({
+                            date: filledDateStr,
+                            usage: avgUsage > 0 ? avgUsage : 0,
+                            avgUsage: avgUsage > 0 ? avgUsage : 0,
+                            isSpike: false,
+                            reading: isEstimated ? parseFloat(estReading.toFixed(2)) : currentLog.reading,
+                            isEstimated: isEstimated
+                        });
+                    }
+                } else {
+                    dailyUsages.push({
+                        date: currentLog.date,
+                        usage: usage > 0 ? usage : 0,
+                        avgUsage: avgUsage > 0 ? avgUsage : 0,
+                        isSpike: false,
+                        reading: currentLog.reading,
+                        isEstimated: false
+                    });
+                }
             }
 
             // Determine spikes
@@ -674,19 +698,22 @@
                 else if (trend === 'flat') trendIcon = '<i class="ph-bold ph-minus text-gray-400 ml-1"></i>';
 
                 let noteIcon = hasNote ? '<i class="ph-fill ph-file-text text-gray-400 mr-2 text-lg"></i>' : '';
+                let estimatedBadge = usage.isEstimated ? '<span class="ml-2 text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded uppercase tracking-wider">আনুমানিক</span>' : '';
+                const clickAction = usage.isEstimated ? `openLogModal('${usage.date}')` : `openLogDetails('${usage.date}')`;
 
                 html += `
-                    <div onclick="openLogDetails('${usage.date}')" class="bg-white p-4 sm:p-5 rounded-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border transition-all cursor-pointer ${usage.isSpike ? 'border-red-100 bg-red-50/30' : 'border-gray-50 hover:border-green-100'}">
+                    <div onclick="${clickAction}" class="bg-white p-4 sm:p-5 rounded-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border transition-all cursor-pointer ${usage.isSpike ? 'border-red-100 bg-red-50/30' : (usage.isEstimated ? 'border-orange-100 bg-orange-50/30' : 'border-gray-50 hover:border-green-100')}">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 ${usage.isSpike ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700'}">
-                                    ${usage.isSpike ? '<i class="ph-fill ph-warning text-xl"></i>' : '<i class="ph ph-lightning text-xl"></i>'}
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 ${usage.isSpike ? 'bg-red-100 text-red-600' : (usage.isEstimated ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-700')}">
+                                    ${usage.isSpike ? '<i class="ph-fill ph-warning text-xl"></i>' : (usage.isEstimated ? '<i class="ph ph-magic-wand text-xl"></i>' : '<i class="ph ph-lightning text-xl"></i>')}
                                 </div>
                                 <div>
                                     <p class="font-bold text-lg leading-tight text-gray-900 flex items-center">
                                         ${usage.usage > 0 ? usage.usage.toFixed(1) : '<span class="text-gray-400 text-sm font-normal italic">ব্যবহার হয়নি</span>'}
                                         ${usage.usage > 0 ? '<span class="text-xs font-normal text-gray-500 ml-1">u</span>' : ''}
                                         ${usage.usage > 0 ? trendIcon : ''}
+                                        ${estimatedBadge}
                                     </p>
                                     <p class="text-xs font-medium text-gray-500 mt-0.5">${formatDateDDMMYYYY(usage.date)}</p>
                                 </div>
@@ -695,7 +722,7 @@
                             <div class="text-right flex flex-col items-end">
                                 <div class="flex items-center">
                                     ${noteIcon}
-                                    <span class="text-[11px] font-mono font-bold text-gray-700 bg-gray-100/80 px-2 py-1 rounded-lg border border-gray-200">
+                                    <span class="text-[11px] font-mono font-bold ${usage.isEstimated ? 'text-orange-700 bg-orange-100/80 border-orange-200' : 'text-gray-700 bg-gray-100/80 border-gray-200'} px-2 py-1 rounded-lg border">
                                         ${usage.reading}
                                     </span>
                                 </div>
@@ -763,19 +790,23 @@
 
                 let classes = "relative flex flex-col justify-center items-center h-12 w-full rounded-xl cursor-pointer transition-all duration-200 ";
                 
+                const isEstimated = usageForDay && usageForDay.isEstimated;
+
                 if (hasLog) {
                     classes += "bg-green-50 text-green-700 border border-green-200 shadow-sm ";
+                } else if (isEstimated) {
+                    classes += "bg-orange-50 text-orange-700 border border-dashed border-orange-300 shadow-sm ";
                 } else {
                     classes += "text-gray-700 hover:bg-gray-100 ";
                 }
                 
-                if (isToday && !hasLog) classes += "border-2 border-dashed border-gray-300 ";
-                if (isToday && hasLog) classes += "ring-2 ring-green-500 ring-offset-1 ";
+                if (isToday && !hasLog && !isEstimated) classes += "border-2 border-dashed border-gray-300 ";
+                if (isToday && (hasLog || isEstimated)) classes += "ring-2 ring-green-500 ring-offset-1 ";
 
-                let innerHtml = `<span class="z-10 text-sm ${hasLog ? 'font-bold' : ''}">${i}</span>`;
+                let innerHtml = `<span class="z-10 text-sm ${(hasLog || isEstimated) ? 'font-bold' : ''}">${i}</span>`;
                 
-                if (hasLog && displayUnit !== null) {
-                    innerHtml += `<span class="text-[8px] font-bold leading-none text-green-600 truncate w-full text-center px-0.5 mt-0.5">${displayUnit}u</span>`;
+                if ((hasLog || isEstimated) && displayUnit !== null) {
+                    innerHtml += `<span class="text-[8px] font-bold leading-none ${isEstimated ? 'text-orange-600' : 'text-green-600'} truncate w-full text-center px-0.5 mt-0.5">${displayUnit}u</span>`;
                 } else if (hasLog) {
                     innerHtml += `<span class="w-1.5 h-1.5 bg-green-500 rounded-full mt-1"></span>`;
                 }
@@ -1015,6 +1046,18 @@
         // Start app
         initApp();
 
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
