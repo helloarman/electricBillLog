@@ -197,6 +197,10 @@
                     <!-- Dynamically populated -->
                 </div>
             </div>
+            
+            <div class="mt-8 mb-4 text-center">
+                <p class="text-sm text-gray-500 font-medium">Developed By <a href="https://github.com/helloarman" target="_blank" class="text-green-600 hover:text-green-700 transition-colors font-semibold">@helloarman</a></p>
+            </div>
         </div>
 
         <div id="view-settings" class="hidden flex-1 overflow-y-auto px-6 pt-2 pb-32 no-scrollbar bg-gray-50">
@@ -243,25 +247,33 @@
                      </button>
                 </div>
             </div>
+            
+            <div class="mt-8 mb-4 text-center">
+                <p class="text-sm text-gray-500 font-medium">Developed By <a href="https://github.com/helloarman" target="_blank" class="text-green-600 hover:text-green-700 transition-colors font-semibold">@helloarman</a></p>
+            </div>
         </div>
 
-        <div class="absolute bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-100 p-4 pb-safe flex justify-center z-40">
-            <div class="bg-black text-white px-8 py-3 rounded-full flex space-x-12 shadow-2xl items-center">
+        <!-- Fixed Bottom Navigation (Floating Pill) -->
+        <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 pb-safe flex justify-center z-50 pointer-events-none">
+            <!-- Subtle gradient to fade out content underneath and ensure readability -->
+            <div class="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent -z-10 h-32 bottom-0 top-auto w-full"></div>
+            
+            <div class="bg-black text-white px-8 py-3.5 rounded-[2.5rem] flex space-x-12 shadow-[0_10px_40px_rgb(0,0,0,0.35)] items-center pointer-events-auto">
                 <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center transition-all opacity-100 text-green-400 scale-110">
-                    <i class="ph-fill ph-house text-2xl mb-0.5"></i>
-                    <span class="text-[10px] font-bold">হোম</span>
+                    <i class="ph-fill ph-house text-3xl mb-0.5"></i>
+                    <span class="text-[11px] font-bold tracking-wide">হোম</span>
                 </button>
                 
-                <button onclick="openLogModal()" class="flex flex-col items-center transition-all opacity-70 hover:opacity-100">
-                    <div class="bg-gray-800 rounded-full p-1.5 border border-gray-700 mb-0.5">
-                        <i class="ph ph-plus text-xl"></i>
+                <button onclick="openLogModal()" class="flex flex-col items-center transition-all hover:scale-105 active:scale-95 group mt-1">
+                    <div class="bg-[#1e2329] rounded-full p-2.5 border border-gray-700 mb-1 shadow-inner group-hover:bg-gray-700 transition-colors">
+                        <i class="ph ph-plus text-xl text-gray-300 group-hover:text-white"></i>
                     </div>
-                    <span class="text-[10px] font-bold">রিডিং</span>
+                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-gray-200 tracking-wide">রিডিং</span>
                 </button>
 
-                <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center transition-all opacity-50 hover:opacity-100">
-                    <i class="ph-fill ph-gear text-2xl mb-0.5"></i>
-                    <span class="text-[10px] font-bold">সেটিংস</span>
+                <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center transition-all opacity-50 hover:opacity-100 text-gray-400">
+                    <i class="ph-fill ph-gear text-3xl mb-0.5"></i>
+                    <span class="text-[11px] font-bold tracking-wide">সেটিংস</span>
                 </button>
             </div>
        </div>
@@ -834,11 +846,11 @@
             
             if (tab === 'home') {
                 navHome.className = "flex flex-col items-center transition-all opacity-100 text-green-400 scale-110";
-                navSettings.className = "flex flex-col items-center transition-all opacity-50 hover:opacity-100";
+                navSettings.className = "flex flex-col items-center transition-all opacity-50 hover:opacity-100 text-gray-400";
                 renderHome();
             } else {
                 navSettings.className = "flex flex-col items-center transition-all opacity-100 text-green-400 scale-110";
-                navHome.className = "flex flex-col items-center transition-all opacity-50 hover:opacity-100";
+                navHome.className = "flex flex-col items-center transition-all opacity-50 hover:opacity-100 text-gray-400";
                 renderSettingsForm();
             }
         }
